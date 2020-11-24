@@ -107,17 +107,20 @@ class Minimax():
                         self.move("ordi",k)
                         pos = (-self.colonne[k], k-1)
                         sum += self.score("ordi","0",pos)
+
                         L.append(sum)
 
                         self.board = copy.deepcopy(self.board2)
                         self.colonne = copy.deepcopy(self.colonne2)
                     except IndexError as e:
                         L.append(0)
+                        self.board = copy.deepcopy(self.board2)
+                        self.colonne = copy.deepcopy(self.colonne2)
         maxx = [max(i) for i in self.paquet(L)]
         minn = [min(i) for i in self.paquet(maxx)]
         maxx = np.argmax(minn)
-        self.board = self.board2
-        self.colonne =  self.colonne2
+        self.board = copy.deepcopy(self.board2)
+        self.colonne = copy.deepcopy(self.colonne2)
         print("fin minmax")
         return maxx+1
 
@@ -136,7 +139,7 @@ class Minimax():
     def makeDiagonale(self, pos):
         if pos[1]>=pos[0]:
             ptref = [0,pos[1]-pos[0]]
-            diag1 = [self.board[ptref[0]+i,ptref[1]+i] for i in range(pos[0]+7-pos[1])]
+            diag1 = [self.board[ptref[0]+i, ptref[1]+i] for i in range(pos[0]+7-pos[1])]
             extra = list(np.repeat(' ', ptref[1]))
             diag1 = extra + diag1
         else:
@@ -162,39 +165,44 @@ class Minimax():
         else:
             return x
 
-    def threeinarow(self, L, p, pat):
+    def threeinarow(self, L, pt, pat, vert):
+        #return the position of the gap if there a 3 pieces in a row
+        if vert:
+            p = pt[0]
+        else:
+            p = pt[1]
         numberOfWindows = 4-abs(p-3)
-        boo = 1
         for wind in range(numberOfWindows):
-            w = L[self.relu(p-3) + wind :self.relu(p-3) + wind + 4]
+            w = L[self.relu(p-3)+wind : self.relu(p-3)+wind+4]
+            print(w)
             if w.count(pat) == 3 and w.count(' ') == 1:
-                return self.relu(p-3) + wind + w.index(' ')
+                return self.relu(p-3) + wind + w.index(' ') + 1
             elif w.count(pat) == 4:
                 return "win"
 
-    def get_heuristic(self, player, line, pat, pos, val, hvd):
-        score = self.threeinarow(line, pos[1], "X")
+    def get_heuristic(self, player, line, pat,  pos, vert):
+        score = self.threeinarow(line, pos, pat, vert)
         if score != None: print(score)
         if score == "win" and player == "Player": return -100000
         if score == "win" and player == "ordi": return 10000000
         if score != None:
-            newpos=[-self.colonne[score],score]
-            self.move(player, score+1)
+            newpos=[6-self.colonne[score], score-1]
+            self.move(player, score)
             if self.condWin(newpos) == 1:
                 if score == "win" and player == "Player": return -100
                 if score == "win" and player == "ordi": return 1
             self.board[newpos[0], newpos[1]] = ''
-            self.colonne[score+1] -= 1
+            self.colonne[score] -= 1
         return 0
 
     def score(self, player, pat, pos):
         pos=[pos[0]+7, pos[1]]
         score = 0
         val = self.board[pos[0], pos[1]]
-        score += self.get_heuristic(player, list(self.board[pos[0],:]), pat, pos, pos[1], "vertical")
-        score += self.get_heuristic(player, list(self.board[:,pos[1]]), pat, pos, pos[0], "horizontal")
-        score += self.get_heuristic(player, self.makeDiagonale(pos)[0], pat, pos, pos[1], "diag1")
-        score += self.get_heuristic(player, self.makeDiagonale(pos)[1], pat, pos, pos[1], "diag2")
+        score += self.get_heuristic(player, list(self.board[pos[0],:]), pat, pos, False)
+        score += self.get_heuristic(player, list(self.board[:,pos[1]]), pat, pos, True)
+        score += self.get_heuristic(player, self.makeDiagonale(pos)[0], pat, pos, False)
+        score += self.get_heuristic(player, self.makeDiagonale(pos)[1], pat, pos, False)
         print(score)
         return score
 

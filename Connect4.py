@@ -1,7 +1,7 @@
 from tkinter import *
 from PIL import Image, ImageTk
 import numpy as np
-from minimax  import Minimax
+from minimax2 import Minimax
 import random
 
 class Connect4(Minimax):
