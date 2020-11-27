@@ -23,7 +23,6 @@ def consecutif(arr, x):
 class Minimax():
     def __init__(self):
         self.init_board()
-        self.partie()
 
     def init_board(self):
         self.player = "j1"
@@ -55,10 +54,7 @@ class Minimax():
                 self.move("Player",coup)
                 pos = (-self.colonne[coup], coup-1)
             if self.player == "ordi":
-                if i == 1:
-                    coup = random.randint(1,8)
-                else:
-                    coup = self.MinMax()+1
+                coup = self.MinMax()+1
                 self.move("ordi",coup)
                 pos = (-self.colonne[coup], coup-1)
             i+=1
@@ -112,17 +108,22 @@ class Minimax():
 
                         self.board = copy.deepcopy(self.board2)
                         self.colonne = copy.deepcopy(self.colonne2)
-                    except IndexError as e:
+                    except:
                         L.append(0)
                         self.board = copy.deepcopy(self.board2)
                         self.colonne = copy.deepcopy(self.colonne2)
         maxx = [max(i) for i in self.paquet(L)]
+        print(maxx)
         minn = [min(i) for i in self.paquet(maxx)]
-        maxx = np.argmax(minn)
+        print(minn)
+        if len(np.unique(maxx)) == 1:
+            maxx = random.randint(1,7)
+        else:
+            maxx = np.argmax(minn)
         self.board = copy.deepcopy(self.board2)
         self.colonne = copy.deepcopy(self.colonne2)
         print("fin minmax")
-        return maxx+1
+        return maxx
 
     def paquet(self, L):
         Lis = []
@@ -171,14 +172,21 @@ class Minimax():
             p = pt[0]
         else:
             p = pt[1]
+        maxAlign = 0
         numberOfWindows = 4-abs(p-3)
         for wind in range(numberOfWindows):
             w = L[self.relu(p-3)+wind : self.relu(p-3)+wind+4]
-            print(w)
             if w.count(pat) == 3 and w.count(' ') == 1:
-                return self.relu(p-3) + wind + w.index(' ') + 1
+                if maxAlign < 3:
+                    maxAlign = 3
+                a = wind
+                b = w
             elif w.count(pat) == 4:
-                return "win"
+                maxAlign = 4
+        if maxAlign == 3:
+            return self.relu(p - 3) + a + b.index(' ') + 1
+        elif maxAlign == 4:
+            return "win"
 
     def get_heuristic(self, player, line, pat,  pos, vert):
         score = self.threeinarow(line, pos, pat, vert)
@@ -188,11 +196,17 @@ class Minimax():
         if score != None:
             newpos=[6-self.colonne[score], score-1]
             self.move(player, score)
-            if self.condWin(newpos) == 1:
-                if score == "win" and player == "Player": return -100
-                if score == "win" and player == "ordi": return 1
-            self.board[newpos[0], newpos[1]] = ''
-            self.colonne[score] -= 1
+            CW2 = self.condWin([newpos[0]-7,newpos[1]])
+            print(CW2)
+            if CW2 == 1:
+                if player == "Player":
+                    self.board[newpos[0], newpos[1]] = ''
+                    self.colonne[score] -= 1
+                    return -100
+                if player == "ordi":
+                    self.board[newpos[0], newpos[1]] = ''
+                    self.colonne[score] -= 1
+                    return 1
         return 0
 
     def score(self, player, pat, pos):
@@ -203,7 +217,4 @@ class Minimax():
         score += self.get_heuristic(player, list(self.board[:,pos[1]]), pat, pos, True)
         score += self.get_heuristic(player, self.makeDiagonale(pos)[0], pat, pos, False)
         score += self.get_heuristic(player, self.makeDiagonale(pos)[1], pat, pos, False)
-        print(score)
         return score
-
-MM = Minimax()

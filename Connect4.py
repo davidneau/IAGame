@@ -23,6 +23,7 @@ class Connect4(Minimax):
         canvButton.pack()
         self.bout1 = Button(canvButton, text='1',width=5, command = lambda:get_int(1))
         self.bout1.grid(row=0)
+        print("bout1")
         self.bout2 = Button(canvButton, text='2',width=5, command = lambda:get_int(2)).grid(row=0, column=1)
         self.bout2 = Button(canvButton, text='3',width=5, command = lambda:get_int(3)).grid(row=0, column=2)
         self.bout2 = Button(canvButton, text='4',width=5, command = lambda:get_int(4)).grid(row=0, column=3)
@@ -79,14 +80,13 @@ class Connect4(Minimax):
             print("Au tour de : ", self.player)
             if self.player == "j1":
                 print(self.board)
-                print(self.var.get())
                 self.bout1.wait_variable(self.var)
                 print("coup de j1 :", self.coup)
                 self.move("p1",self.coup)
                 pos = (-self.colonne[self.coup], self.coup-1)
             if self.player == "ordi":
                 self.isMinMax = True
-                coup = self.MinMax()
+                coup = self.MinMax()+1
                 self.isMinMax = False
                 self.move("p2",coup)
                 pos = (-self.colonne[coup], coup-1)
